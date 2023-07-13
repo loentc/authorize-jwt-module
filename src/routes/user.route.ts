@@ -12,6 +12,6 @@ UserRouter.post('/login', userController.login)
 
 UserRouter.get('/', middlewareHandler.verifyToken, userController.helloPage)
 
-UserRouter.get('/fetch-data', middlewareHandler.modifyUser, userController.fecthApiUser)
+UserRouter.get('/fetch-data', middlewareHandler.verifyToken, userController.fecthApiUser)
 
 export default UserRouter
