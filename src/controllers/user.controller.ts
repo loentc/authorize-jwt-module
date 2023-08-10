@@ -3,7 +3,6 @@ import { PrismaClient } from "@prisma/client"
 import { Request, Response } from "express"
 import { v4 as uuidv4 } from 'uuid'
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
 import { TokenService } from "../service/token.service"
 
 const prisma = new PrismaClient()
@@ -83,5 +82,45 @@ export class UserController {
 
     async helloPage(req: Request, res: Response) {
         return res.send({ message: 'Hello API Express' });
+    }
+
+    async testTransation(req: Request, res: Response) {
+        // 43a3ba5d-494d-46f7-80bb-9b7b23e88d1c
+        try {
+            const { firstname, lastname, email, password } = req.body as { [key: string]: string }
+
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+            const createUserDto = {
+                id: uuidv4(),
+                firstname,
+                lastname,
+                email: email.toLowerCase(),
+                password: hashedPassword
+            }
+            // const transaction1Result = await prisma.$transaction(async (prismaClient) => {
+            //     const result = await prismaClient.user.create({ data: createUserDto });
+            //     return { result }
+            // })
+
+            const transaction2Result = await prisma.$transaction(async (prismaClient) => {
+                const sqlQuery = `
+                UPDATE User
+                SET email = 'abc999@gmail.com' 
+                WHERE id = '43a3ba5d-494d-46f7-80bb-9b7b23e88d1c'
+                `;
+                return await prismaClient.$queryRaw` UPDATE User
+                SET email = 'abc999@gmail.com' 
+                WHERE id = '43a3ba5d-494d-46f7-80bb-9b7b23e88d1c'`;
+            })
+            console.log(transaction2Result)
+
+
+            return res.json('Create Success: ')
+        }
+        catch (err) {
+            return res.json(err)
+        }
+
     }
 }
